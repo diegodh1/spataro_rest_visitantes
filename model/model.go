@@ -46,8 +46,8 @@ type Usuario struct {
 
 //UsuarioPermiso structura para los diferentes permisos que tiene un usuario
 type UsuarioPermiso struct {
-	PermisoID            uint64     `gorm:"primaryKey;"`
-	UsuarioID            string     `gorm:"primaryKey;"`
+	PermisoID            string     `gorm:"primaryKey;"`
+	UsuarioID            uint64     `gorm:"primaryKey;"`
 	UsuarioPermisoEstado bool       `gorm:"default:true;"`
 	UsuarioPermisoFecha  *time.Time `gorm:"type:timestamptz;default:NOW();"`
 }
@@ -78,10 +78,11 @@ type Visitante struct {
 type VisitanteDocumento struct {
 	VisitanteID             uint64 `gorm:"primaryKey;"`
 	DocumentoID             string `gorm:"primaryKey;"`
-	VisitanteDocNombre      string
+	VisitanteDocNombre      string `gorm:"primaryKey;"`
 	VisitanteDocReferencia  string
 	VisitanteDocDescripcion string
 	VisitanteDocFecha       *time.Time `gorm:"type:timestamptz;default:NOW();"`
+	VisitanteDocPath        string
 }
 
 //VisitanteEmpresa structura para las visitas que hacen a spataro
@@ -95,4 +96,5 @@ type VisitanteEmpresa struct {
 	Observaciones   string
 	RegistroSalida  bool   `gorm:"default:false;"`
 	EmpleadoID      uint64 `gorm:"foreignKey:EmpleadoID;"`
+	UsuarioID       uint64 `gorm:"foreignKey:UsuarioID;"`
 }

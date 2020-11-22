@@ -40,6 +40,11 @@ func (a *App) Initialize(config *config.Config) {
 func (a *App) setRouters() {
 	a.Post("/login", a.UserLogin)
 	a.Post("/createUser", a.CreateUser)
+	a.Post("/createPermission", a.CreatePermission)
+	a.Post("/assignPermission", a.AssignUserPermission)
+	a.Post("/createGuest", a.CreateGuest)
+	a.Post("/getGuest/", a.SearchGuest)
+	a.Post("/createDocGuest/", a.CreateDocGuest)
 }
 
 //Get all get functions
@@ -65,6 +70,31 @@ func (a *App) UserLogin(w http.ResponseWriter, r *http.Request) {
 //CreateUser lets create a new user
 func (a *App) CreateUser(w http.ResponseWriter, r *http.Request) {
 	handler.CreateUser(a.DB, w, r)
+}
+
+//CreatePermission lets create a new 'permiso'
+func (a *App) CreatePermission(w http.ResponseWriter, r *http.Request) {
+	handler.CreatePermission(a.DB, w, r)
+}
+
+//AssignUserPermission lets assign a 'permiso' to a user
+func (a *App) AssignUserPermission(w http.ResponseWriter, r *http.Request) {
+	handler.AssignUserPermission(a.DB, w, r)
+}
+
+//CreateGuest creates a new guest in the database
+func (a *App) CreateGuest(w http.ResponseWriter, r *http.Request) {
+	handler.CreateGuest(a.DB, w, r)
+}
+
+//SearchGuest search a guest in the database
+func (a *App) SearchGuest(w http.ResponseWriter, r *http.Request) {
+	handler.SearchGuest(a.DB, w, r)
+}
+
+//CreateDocGuest creates a new guest in the database
+func (a *App) CreateDocGuest(w http.ResponseWriter, r *http.Request) {
+	handler.CreateDocGuest(a.DB, w, r)
 }
 
 //Run run app

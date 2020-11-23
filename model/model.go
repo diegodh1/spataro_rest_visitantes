@@ -87,14 +87,15 @@ type VisitanteDocumento struct {
 
 //VisitanteEmpresa structura para las visitas que hacen a spataro
 type VisitanteEmpresa struct {
-	VisitanteID     uint64     `gorm:"foreignKey:VisitanteID;"`
-	DocumentoID     string     `gorm:"foreignKey:DocumentoID;"`
-	EmpresaID       string     `gorm:"foreignKey:EmpresaID;"`
-	FechaEntrada    *time.Time `gorm:"type:timestamptz;default:NOW();"`
-	FechaSalida     *time.Time `gorm:"type:timestamptz;default:null;"`
-	FechaRealSalida *time.Time `gorm:"type:timestamptz;default:null;"`
-	Observaciones   string
-	RegistroSalida  bool   `gorm:"default:false;"`
-	EmpleadoID      uint64 `gorm:"foreignKey:EmpleadoID;"`
-	UsuarioID       uint64 `gorm:"foreignKey:UsuarioID;"`
+	VisitanteEmpresaRegistro uint64     `gorm:"primaryKey;"`
+	VisitanteID              uint64     `gorm:"foreignKey:VisitanteID;"`
+	DocumentoID              string     `gorm:"foreignKey:DocumentoID;"`
+	EmpresaID                string     `gorm:"foreignKey:EmpresaID;"`
+	FechaEntrada             *time.Time `gorm:"type:timestamptz;default:NOW();"`
+	FechaSalida              *time.Time `gorm:"type:timestamptz;"`
+	FechaRealSalida          *time.Time `gorm:"type:timestamptz;"`
+	Observaciones            string
+	RegistroSalida           bool   `gorm:"default:false;"`
+	EmpleadoID               uint64 `gorm:"foreignKey:EmpleadoID;"`
+	UsuarioID                uint64 `gorm:"foreignKey:UsuarioID;"`
 }

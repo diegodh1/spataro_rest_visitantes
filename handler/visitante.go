@@ -2,15 +2,24 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	models "spataro/model"
 	"strconv"
+	"strings"
 
 	"gorm.io/gorm"
 )
+
+//GetAllDocuments this function returns all the documents type
+func GetAllDocuments(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	documents := []models.Documento{}
+	db.Where("documento_estado = ?", true).Find(&documents)
+	respondJSON(w, http.StatusOK, JSONResponse{Payload: documents, Message: "Documentos encontrados!!"})
+}
 
 //CreateGuest this function allows to create a new 'visitante'
 func CreateGuest(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
@@ -34,6 +43,63 @@ func CreateGuest(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, JSONResponse{Message: "Visitante creado con éxito!!"})
+}
+
+//UpdateVisit this function allows to create a new 'visitante'
+func UpdateVisit(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	guest := models.VisitanteEmpresa{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&guest); err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Petición mal estructurada"})
+		fmt.Println(err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	if err := db.Model(&guest).Select("RegistroSalida", "Observaciones", "FechaRealSalida").Updates(guest).Error; err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Por favor verificar los campos obligatorios"})
+		return
+	}
+	respondJSON(w, http.StatusOK, JSONResponse{Message: "Visita Finalizada!!"})
+}
+
+//CreateCompany create a new company in the database
+func CreateCompany(db gorm.DB, empresaID string) (string, error) {
+	company := models.Empresa{EmpresaID: empresaID}
+
+	if err := db.Omit("EmpresaFechaCreacion").Save(&company).Error; err != nil {
+		return "", errors.New(err.Error())
+	}
+	return "empresa creada con éxito", nil
+}
+
+//CreateGuestCompany create a new visit in the database
+func CreateGuestCompany(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	guestCompany := models.VisitanteEmpresa{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&guestCompany); err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Petición mal estructurada"})
+		fmt.Println(err.Error())
+		return
+	}
+	defer r.Body.Close()
+	guestCompany.EmpresaID = strings.ToUpper(guestCompany.EmpresaID)
+	if guestCompany.EmpresaID == "" {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "La empresa no puede estar vacia"})
+		return
+	}
+	_, err := CreateCompany(*db, guestCompany.EmpresaID)
+	if err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: err.Error()})
+		return
+	}
+	if err := db.Create(&guestCompany).Error; err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Por favor verificar los campos obligatorios"})
+		return
+	}
+	respondJSON(w, http.StatusOK, JSONResponse{Message: "Visita creada con éxito!!"})
 }
 
 //SearchGuest this function search a 'visitante' in the database
@@ -68,8 +134,8 @@ func CreateDocGuest(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	docGuest := models.VisitanteDocumento{}
 	docGuest.VisitanteID = uint64(visitanteID)
 	docGuest.DocumentoID = r.FormValue("documentoID")
-	docGuest.VisitanteDocNombre = r.FormValue("docNombre")
-	docGuest.VisitanteDocReferencia = r.FormValue("docReferencia")
+	docGuest.VisitanteDocNombre = strings.ToUpper(r.FormValue("docNombre"))
+	docGuest.VisitanteDocReferencia = strings.ToUpper(r.FormValue("docReferencia"))
 	docGuest.VisitanteDocDescripcion = r.FormValue("docDescripcion")
 
 	if err := db.Omit("VisitanteDocFecha").Save(&docGuest).Error; err != nil {

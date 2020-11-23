@@ -7,6 +7,7 @@ import (
 	"spataro/config"
 	"spataro/handler"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -45,6 +46,10 @@ func (a *App) setRouters() {
 	a.Post("/createGuest", a.CreateGuest)
 	a.Post("/getGuest/", a.SearchGuest)
 	a.Post("/createDocGuest/", a.CreateDocGuest)
+	a.Post("/createGuestCompany/", a.CreateGuestCompany)
+	a.Post("/finishGuestCompany/", a.UpdateVisit)
+	//GET
+	a.Get("/getAllDocuments/", a.GetAllDocuments)
 }
 
 //Get all get functions
@@ -97,7 +102,22 @@ func (a *App) CreateDocGuest(w http.ResponseWriter, r *http.Request) {
 	handler.CreateDocGuest(a.DB, w, r)
 }
 
+//CreateGuestCompany creates a new guest in the database
+func (a *App) CreateGuestCompany(w http.ResponseWriter, r *http.Request) {
+	handler.CreateGuestCompany(a.DB, w, r)
+}
+
+//UpdateVisit finish the visit
+func (a *App) UpdateVisit(w http.ResponseWriter, r *http.Request) {
+	handler.UpdateVisit(a.DB, w, r)
+}
+
+//GetAllDocuments this function returns all the documents type
+func (a *App) GetAllDocuments(w http.ResponseWriter, r *http.Request) {
+	handler.GetAllDocuments(a.DB, w, r)
+}
+
 //Run run app
 func (a *App) Run(host string) {
-	log.Fatal(http.ListenAndServe(host, a.Router))
+	log.Fatal(http.ListenAndServe(host, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(a.Router)))
 }

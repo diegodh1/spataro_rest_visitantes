@@ -52,9 +52,14 @@ func (a *App) setRouters() {
 	a.Post("/getAllDocumentsFromGuest/", a.GetGuestDocuments)
 	a.Post("/getDocumentBase64/", a.GetDocumentBase64)
 	a.Post("/getCompaniesGuest/", a.GetGuestCompanies)
+	a.Post("/updateUser", a.UpdateUser)
+	a.Post("/updatePermissions", a.UpdatePermissions)
 	//GET
 	a.Get("/getAllEmployees/", a.GetAllEmployees)
 	a.Get("/getAllDocuments/", a.GetAllDocuments)
+	a.Get("/listUsers", a.ListUsers)
+	a.Get("/getAllPermissions", a.GetAllPermissions)
+	a.Get("/getUser/{UsuarioID}", a.GetUser)
 }
 
 //Get all get functions
@@ -145,6 +150,27 @@ func (a *App) GetGuestCompanies(w http.ResponseWriter, r *http.Request) {
 //GetAllEmployees Get all the employees from the database
 func (a *App) GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	handler.GetAllEmployees(a.DB, w, r)
+}
+
+// FUNCIONES ALEXANDER
+func (a *App) ListUsers(w http.ResponseWriter, r *http.Request) {
+	handler.ListUsers(a.DB, w, r)
+}
+
+func (a *App) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	handler.UpdateUser(a.DB, w, r)
+}
+
+func (a *App) GetAllPermissions(w http.ResponseWriter, _ *http.Request) {
+	handler.GetAllPermissions(a.DB, w)
+}
+
+func (a *App) UpdatePermissions(w http.ResponseWriter, r *http.Request) {
+	handler.UpdatePermissions(a.DB, w, r)
+}
+
+func (a *App) GetUser(w http.ResponseWriter, r *http.Request) {
+	handler.GetUser(a.DB, w, r)
 }
 
 //Run run app

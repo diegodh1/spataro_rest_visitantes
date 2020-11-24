@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	models "spataro/model"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -100,4 +102,82 @@ func getUserPermissionOrNull(db *gorm.DB, permisoID string, usuarioID uint64) *m
 		return nil
 	}
 	return &userPermiso
+}
+
+//ALEXANDER METHODS
+
+//ListUsers list all users
+func ListUsers(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var users []models.Usuario
+	db.Find(&users)
+	if len(users) != 0 {
+		respondJSON(w, http.StatusOK, users)
+		return
+	}
+	respondError(w, http.StatusNotFound, "Not users found")
+}
+
+//UpdateUser update a user
+func UpdateUser(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	user := models.Usuario{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&user); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	if queryRes := db.Omit("UsuarioContrasena", "UsuarioID", "UsuarioFechaCreacion").Updates(&user); queryRes.Error != nil || queryRes.RowsAffected == 0 {
+		respondError(w, http.StatusBadRequest, "Error in operation or Not found")
+		return
+	}
+	respondJSON(w, http.StatusOK, user)
+}
+
+//GetAllPermissions get all permissions
+func GetAllPermissions(db *gorm.DB, w http.ResponseWriter) {
+	var permisos []models.Permiso
+	db.Find(&permisos)
+	if len(permisos) != 0 {
+		respondJSON(w, http.StatusOK, permisos)
+		return
+	}
+	respondError(w, http.StatusNotFound, "Not found")
+}
+
+//UpdatePermissions update a permission
+func UpdatePermissions(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	permiso := models.Permiso{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&permiso); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	if queryRes := db.Updates(&permiso); queryRes.Error != nil || queryRes.RowsAffected == 0 {
+		respondError(w, http.StatusBadRequest, "Error in operation or Not found")
+		return
+	}
+	// return all the profiles
+	var permisos []models.Permiso
+	if err := db.Find(&permisos).Error; err != nil {
+		respondError(w, http.StatusBadRequest, "Error in operation or Not found")
+		return
+	}
+	respondJSON(w, http.StatusOK, permisos)
+}
+
+//GetUser get a user
+func GetUser(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	user := models.Usuario{}
+	user.UsuarioID, _ = strconv.ParseUint(mux.Vars(r)["UsuarioID"], 10, 64)
+
+	if err := db.Find(&user).Error; err != nil {
+		respondError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	respondJSON(w, http.StatusOK, user)
 }

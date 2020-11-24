@@ -60,6 +60,8 @@ func (a *App) setRouters() {
 	a.Get("/listUsers", a.ListUsers)
 	a.Get("/getAllPermissions", a.GetAllPermissions)
 	a.Get("/getUser/{UsuarioID}", a.GetUser)
+	a.Get("/getAllUserPermissions/{RestaurantUserID}", a.GetAllUserPermissions)
+
 }
 
 //Get all get functions
@@ -153,24 +155,35 @@ func (a *App) GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 }
 
 // FUNCIONES ALEXANDER
+
+//ListUsers list all the users in the database
 func (a *App) ListUsers(w http.ResponseWriter, r *http.Request) {
 	handler.ListUsers(a.DB, w, r)
 }
 
+//UpdateUser update a user
 func (a *App) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	handler.UpdateUser(a.DB, w, r)
 }
 
+//GetAllPermissions get all permissions
 func (a *App) GetAllPermissions(w http.ResponseWriter, _ *http.Request) {
 	handler.GetAllPermissions(a.DB, w)
 }
 
+//UpdatePermissions update the permission
 func (a *App) UpdatePermissions(w http.ResponseWriter, r *http.Request) {
 	handler.UpdatePermissions(a.DB, w, r)
 }
 
+//GetUser get a user
 func (a *App) GetUser(w http.ResponseWriter, r *http.Request) {
 	handler.GetUser(a.DB, w, r)
+}
+
+//GetAllUserPermissions get all the permissions from a user
+func (a *App) GetAllUserPermissions(w http.ResponseWriter, r *http.Request) {
+	handler.GetAllUserPermissions(a.DB, w, r)
 }
 
 //Run run app

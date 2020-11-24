@@ -181,3 +181,36 @@ func GetUser(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	respondJSON(w, http.StatusOK, user)
 }
+
+//GetAllUserPermissions get all the permissions from a user
+func GetAllUserPermissions(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	var permisos []models.Permiso
+	userPermission := models.UsuarioPermiso{}
+	userPermission.UsuarioID, _ = strconv.ParseUint(mux.Vars(r)["UsuarioID"], 10, 64)
+
+	rows, err := db.Raw("SELECT * FROM (SELECT permiso_id FROM usuario_permiso WHERE usuario_permiso_estado = true AND usuario_id = 10109182) AS foo NATURAL JOIN permiso",
+		true, userPermission.UsuarioID).Rows()
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Data base error")
+		return
+	}
+
+	defer rows.Close()
+	entered := rows.Next()
+
+	if !entered {
+		respondJSON(w, http.StatusNoContent, permisos)
+		return
+	}
+
+	for entered {
+		if db.ScanRows(rows, &permisos) != nil {
+			respondError(w, http.StatusInternalServerError, "Data base error")
+			return
+		}
+		entered = rows.Next()
+	}
+
+	respondJSON(w, http.StatusOK, permisos)
+}

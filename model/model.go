@@ -87,7 +87,8 @@ type VisitanteDocumento struct {
 
 //VisitanteEmpresa structura para las visitas que hacen a spataro
 type VisitanteEmpresa struct {
-	VisitanteEmpresaRegistro uint64     `gorm:"primaryKey;"`
+	VisitanteEmpresaRegistro uint64 `gorm:"primaryKey;"`
+	VisitanteEmpresaHoras    uint64
 	VisitanteID              uint64     `gorm:"foreignKey:VisitanteID;"`
 	DocumentoID              string     `gorm:"foreignKey:DocumentoID;"`
 	EmpresaID                string     `gorm:"foreignKey:EmpresaID;"`

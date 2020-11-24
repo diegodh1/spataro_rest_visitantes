@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"bufio"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	models "spataro/model"
@@ -21,6 +24,13 @@ func GetAllDocuments(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, JSONResponse{Payload: documents, Message: "Documentos encontrados!!"})
 }
 
+//GetAllEmployees this function returns all the employees type
+func GetAllEmployees(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	employees := []models.Empleado{}
+	db.Where("empleado_estado = ?", true).Find(&employees)
+	respondJSON(w, http.StatusOK, JSONResponse{Payload: employees, Message: "Empleados encontrados!!"})
+}
+
 //CreateGuest this function allows to create a new 'visitante'
 func CreateGuest(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	guest := models.Visitante{}
@@ -29,6 +39,15 @@ func CreateGuest(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&guest); err != nil {
 		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Petición mal estructurada"})
 		fmt.Println(err.Error())
+		return
+	}
+	if guest.VisitanteNombre == "" {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "el nombre del visitante no puede estar vacio"})
+		return
+	}
+	_, err := strconv.Atoi(guest.VisitanteCelular)
+	if err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "el número de teléfono debe ser numérico"})
 		return
 	}
 	defer r.Body.Close()
@@ -43,6 +62,92 @@ func CreateGuest(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, JSONResponse{Message: "Visitante creado con éxito!!"})
+}
+
+//GetGuestDocuments get all the documents from a guest
+func GetGuestDocuments(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	guest := models.Visitante{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&guest); err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Petición mal estructurada"})
+		fmt.Println(err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	documents := []models.VisitanteDocumento{}
+	if err := db.Find(&documents, models.Visitante{VisitanteID: guest.VisitanteID, DocumentoID: guest.DocumentoID}).Error; err != nil {
+		respondJSON(w, http.StatusOK, JSONResponse{Payload: documents, Message: "Documentos obtenidos!!"})
+		return
+	}
+	respondJSON(w, http.StatusOK, JSONResponse{Payload: documents, Message: "Documentos obtenidos!!"})
+}
+
+//GetGuestCompanies get all the documents from a guest
+func GetGuestCompanies(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	guest := models.Visitante{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&guest); err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Petición mal estructurada"})
+		fmt.Println(err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	empresas := []models.VisitanteEmpresa{}
+	if err := db.Find(&empresas, models.Visitante{VisitanteID: guest.VisitanteID, DocumentoID: guest.DocumentoID}).Error; err != nil {
+		respondJSON(w, http.StatusOK, JSONResponse{Payload: empresas, Message: "Empresas obtenidos!!"})
+		return
+	}
+	respondJSON(w, http.StatusOK, JSONResponse{Payload: empresas, Message: "Empresas obtenidos!!"})
+}
+
+//GetDocumentBase64 get all the documents from a guest
+func GetDocumentBase64(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	guestDoc := models.VisitanteDocumento{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&guestDoc); err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Petición mal estructurada"})
+		fmt.Println(err.Error())
+		return
+	}
+	defer r.Body.Close()
+	// Open file on disk.
+	path := strings.ReplaceAll(guestDoc.VisitanteDocPath, `\`, "/")
+	f, err := os.Open(path)
+	if err != nil {
+		respondJSON(w, http.StatusInternalServerError, JSONResponse{Payload: "", Message: "Este documento no tiene archivo adjunto"})
+		return
+	}
+	// Read entire JPG into byte slice.
+	reader := bufio.NewReader(f)
+	content, _ := ioutil.ReadAll(reader)
+
+	// Encode as base64.
+	encoded := base64.StdEncoding.EncodeToString(content)
+	respondJSON(w, http.StatusOK, JSONResponse{Payload: encoded, Message: "Documento descargado con éxito!!"})
+}
+
+//UpdateGuest this function updates a guest
+func UpdateGuest(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	guest := models.Visitante{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&guest); err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Petición mal estructurada"})
+		fmt.Println(err.Error())
+		return
+	}
+	defer r.Body.Close()
+	fmt.Println(guest.VisitanteEstado)
+	if err := db.Model(&guest).Omit("VisitanteFechaCreacion", "VisitanteID", "DocumentoID").Save(guest).Error; err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Por favor verificar los campos obligatorios"})
+		return
+	}
+	respondJSON(w, http.StatusOK, JSONResponse{Message: "Visitante actualizado con éxito!!"})
 }
 
 //UpdateVisit this function allows to create a new 'visitante'
@@ -113,7 +218,7 @@ func SearchGuest(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	guestTemp := getGuestOrNull(db, guest.VisitanteID, guest.DocumentoID)
+	guestTemp := getGuestOrNullSearch(db, guest.VisitanteID, guest.DocumentoID)
 	if guestTemp != nil {
 		respondJSON(w, http.StatusOK, JSONResponse{Payload: guestTemp, Message: "registro encontrado"})
 		return
@@ -170,6 +275,15 @@ func CreateDocGuest(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 func getGuestOrNull(db *gorm.DB, visitanteID uint64, documentoID string) *models.Visitante {
 	guest := models.Visitante{}
 	if err := db.Where("visitante_estado = ?", true).First(&guest, models.Visitante{VisitanteID: visitanteID, DocumentoID: documentoID}).Error; err != nil {
+		return nil
+	}
+	return &guest
+}
+
+// get a user whose ID is equal to the param
+func getGuestOrNullSearch(db *gorm.DB, visitanteID uint64, documentoID string) *models.Visitante {
+	guest := models.Visitante{}
+	if err := db.First(&guest, models.Visitante{VisitanteID: visitanteID, DocumentoID: documentoID}).Error; err != nil {
 		return nil
 	}
 	return &guest

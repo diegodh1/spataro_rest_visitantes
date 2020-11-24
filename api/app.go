@@ -48,7 +48,12 @@ func (a *App) setRouters() {
 	a.Post("/createDocGuest/", a.CreateDocGuest)
 	a.Post("/createGuestCompany/", a.CreateGuestCompany)
 	a.Post("/finishGuestCompany/", a.UpdateVisit)
+	a.Post("/updateGuest/", a.UpdateGuest)
+	a.Post("/getAllDocumentsFromGuest/", a.GetGuestDocuments)
+	a.Post("/getDocumentBase64/", a.GetDocumentBase64)
+	a.Post("/getCompaniesGuest/", a.GetGuestCompanies)
 	//GET
+	a.Get("/getAllEmployees/", a.GetAllEmployees)
 	a.Get("/getAllDocuments/", a.GetAllDocuments)
 }
 
@@ -115,6 +120,31 @@ func (a *App) UpdateVisit(w http.ResponseWriter, r *http.Request) {
 //GetAllDocuments this function returns all the documents type
 func (a *App) GetAllDocuments(w http.ResponseWriter, r *http.Request) {
 	handler.GetAllDocuments(a.DB, w, r)
+}
+
+//UpdateGuest this function updates a guest
+func (a *App) UpdateGuest(w http.ResponseWriter, r *http.Request) {
+	handler.UpdateGuest(a.DB, w, r)
+}
+
+//GetGuestDocuments Get all the documents from a guest
+func (a *App) GetGuestDocuments(w http.ResponseWriter, r *http.Request) {
+	handler.GetGuestDocuments(a.DB, w, r)
+}
+
+//GetDocumentBase64 Get a document in base 64
+func (a *App) GetDocumentBase64(w http.ResponseWriter, r *http.Request) {
+	handler.GetDocumentBase64(a.DB, w, r)
+}
+
+//GetGuestCompanies Get all the companies that were visited by the guest
+func (a *App) GetGuestCompanies(w http.ResponseWriter, r *http.Request) {
+	handler.GetGuestCompanies(a.DB, w, r)
+}
+
+//GetAllEmployees Get all the employees from the database
+func (a *App) GetAllEmployees(w http.ResponseWriter, r *http.Request) {
+	handler.GetAllEmployees(a.DB, w, r)
 }
 
 //Run run app

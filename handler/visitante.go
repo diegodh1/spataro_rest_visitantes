@@ -13,6 +13,7 @@ import (
 	models "spataro/model"
 	"strconv"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -104,6 +105,23 @@ func GetGuestCompanies(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, JSONResponse{Payload: empresas, Message: "Empresas obtenidos!!"})
 }
 
+//GetVisits get all the visits
+func GetVisits(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	visit := models.VisitanteEmpresa{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&visit); err != nil {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Petición mal estructurada"})
+		fmt.Println(err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	visitas := []models.VisitanteEmpresa{}
+	db.Where("fecha_entrada BETWEEN ? AND ?", visit.FechaEntrada, visit.FechaSalida).Find(&visitas)
+	respondJSON(w, http.StatusOK, JSONResponse{Payload: visitas, Message: "Visitas obtenidos!!"})
+}
+
 //GetDocumentBase64 get all the documents from a guest
 func GetDocumentBase64(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	guestDoc := models.VisitanteDocumento{}
@@ -161,8 +179,10 @@ func UpdateVisit(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-
-	if err := db.Model(&guest).Select("RegistroSalida", "Observaciones", "FechaRealSalida").Updates(guest).Error; err != nil {
+	finalDate := time.Now()
+	guest.FechaRealSalida = &finalDate
+	guest.RegistroSalida = true
+	if err := db.Model(&guest).Select("Observaciones", "FechaRealSalida", "RegistroSalida").Updates(guest).Error; err != nil {
 		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Por favor verificar los campos obligatorios"})
 		return
 	}
@@ -195,11 +215,19 @@ func CreateGuestCompany(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "La empresa no puede estar vacia"})
 		return
 	}
+	if guestCompany.VisitanteEmpresaHoras <= 0 {
+		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "El número de horas debe ser mayor a cero"})
+		return
+	}
 	_, err := CreateCompany(*db, guestCompany.EmpresaID)
 	if err != nil {
 		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: err.Error()})
 		return
 	}
+	initialDate := time.Now()
+	finalDate := initialDate.Add(time.Hour * time.Duration(guestCompany.VisitanteEmpresaHoras))
+	guestCompany.FechaEntrada = &initialDate
+	guestCompany.FechaSalida = &finalDate
 	if err := db.Create(&guestCompany).Error; err != nil {
 		respondJSON(w, http.StatusBadRequest, JSONResponse{Message: "Por favor verificar los campos obligatorios"})
 		return

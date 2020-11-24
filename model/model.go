@@ -30,7 +30,7 @@ type Empresa struct {
 type Permiso struct {
 	PermisoID            string `gorm:"primaryKey;"`
 	PermisoDesc          string
-	PermisoEstado        bool       `gorm:"default:true;"`
+	PermisoEstado        *bool      `gorm:"default:true;"`
 	PermisoFechaCreacion *time.Time `gorm:"type:timestamptz;default:NOW();"`
 }
 
@@ -40,7 +40,7 @@ type Usuario struct {
 	UsuarioContrasena    string
 	UsuarioNombre        string
 	UsuarioApellido      string
-	UsuarioEstado        bool       `gorm:"default:true;"`
+	UsuarioEstado        *bool      `gorm:"default:true;"`
 	UsuarioFechaCreacion *time.Time `gorm:"type:timestamptz;default:NOW();"`
 }
 
@@ -48,7 +48,7 @@ type Usuario struct {
 type UsuarioPermiso struct {
 	PermisoID            string     `gorm:"primaryKey;"`
 	UsuarioID            uint64     `gorm:"primaryKey;"`
-	UsuarioPermisoEstado bool       `gorm:"default:true;"`
+	UsuarioPermisoEstado *bool      `gorm:"default:true;"`
 	UsuarioPermisoFecha  *time.Time `gorm:"type:timestamptz;default:NOW();"`
 }
 

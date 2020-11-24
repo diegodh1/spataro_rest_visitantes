@@ -54,6 +54,7 @@ func (a *App) setRouters() {
 	a.Post("/getCompaniesGuest/", a.GetGuestCompanies)
 	a.Post("/updateUser", a.UpdateUser)
 	a.Post("/updatePermissions", a.UpdatePermissions)
+	a.Post("/getVisits", a.GetVisits)
 	//GET
 	a.Get("/getAllEmployees/", a.GetAllEmployees)
 	a.Get("/getAllDocuments/", a.GetAllDocuments)
@@ -184,6 +185,11 @@ func (a *App) GetUser(w http.ResponseWriter, r *http.Request) {
 //GetAllUserPermissions get all the permissions from a user
 func (a *App) GetAllUserPermissions(w http.ResponseWriter, r *http.Request) {
 	handler.GetAllUserPermissions(a.DB, w, r)
+}
+
+//GetVisits get all the visits in the database
+func (a *App) GetVisits(w http.ResponseWriter, r *http.Request) {
+	handler.GetVisits(a.DB, w, r)
 }
 
 //Run run app

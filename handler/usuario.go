@@ -158,12 +158,14 @@ func UpdatePermissions(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if queryRes := db.Updates(&permiso); queryRes.Error != nil || queryRes.RowsAffected == 0 {
+		fmt.Println("queryRes.Error.Error()")
 		respondError(w, http.StatusBadRequest, "Error in operation or Not found")
 		return
 	}
 	// return all the profiles
 	var permisos []models.Permiso
 	if err := db.Find(&permisos).Error; err != nil {
+		fmt.Println(err.Error())
 		respondError(w, http.StatusBadRequest, "Error in operation or Not found")
 		return
 	}

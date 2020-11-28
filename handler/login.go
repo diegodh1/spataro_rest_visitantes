@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	models "spataro/model"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -13,6 +15,8 @@ import (
 func UserLogin(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	user := models.Usuario{}
 	decoder := json.NewDecoder(r.Body)
+	initialDate := time.Now()
+	fmt.Println(initialDate)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&user); err != nil {
 		respondJSON(w, http.StatusUnauthorized, JSONResponse{Message: "Error interno del servidor"})

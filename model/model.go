@@ -100,3 +100,19 @@ type VisitanteEmpresa struct {
 	EmpleadoID               uint64 `gorm:"foreignKey:EmpleadoID;"`
 	UsuarioID                uint64 `gorm:"foreignKey:UsuarioID;"`
 }
+
+//VisitanteImprimir struct for print documents
+type VisitanteImprimir struct {
+	VisitanteEmpresaRegistro uint64
+	VisitanteID              uint64
+	DocumentoID              string
+	EmpresaID                string
+	FechaEntrada             *time.Time
+	FechaSalida              *time.Time
+	FechaRealSalida          *time.Time
+	Observaciones            string
+	RegistroSalida           bool
+	EmpleadoID               uint64
+	UsuarioID                uint64
+	NombreVisita             string
+}

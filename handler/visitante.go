@@ -119,7 +119,33 @@ func GetVisits(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 	visitas := []models.VisitanteEmpresa{}
 	db.Where("fecha_entrada BETWEEN ? AND ?", visit.FechaEntrada, visit.FechaSalida).Find(&visitas)
-	respondJSON(w, http.StatusOK, JSONResponse{Payload: visitas, Message: "Visitas obtenidos!!"})
+
+	result := GetAllPrintVisits(db, visitas)
+	respondJSON(w, http.StatusOK, JSONResponse{Payload: result, Message: "Visitas obtenidos!!"})
+}
+
+//GetAllPrintVisits aux function
+func GetAllPrintVisits(db *gorm.DB, visitas []models.VisitanteEmpresa) []models.VisitanteImprimir {
+	employee := models.Empleado{}
+	visitsPrint := []models.VisitanteImprimir{}
+	for i := 0; i < len(visitas); i++ {
+		db.First(&employee, models.Empleado{EmpleadoID: visitas[i].EmpleadoID})
+		visitsPrint = append(visitsPrint, models.VisitanteImprimir{
+			VisitanteEmpresaRegistro: visitas[i].VisitanteEmpresaRegistro,
+			VisitanteID:              visitas[i].VisitanteID,
+			DocumentoID:              visitas[i].DocumentoID,
+			EmpresaID:                visitas[i].EmpresaID,
+			FechaEntrada:             visitas[i].FechaEntrada,
+			FechaSalida:              visitas[i].FechaSalida,
+			FechaRealSalida:          visitas[i].FechaRealSalida,
+			Observaciones:            visitas[i].Observaciones,
+			RegistroSalida:           visitas[i].RegistroSalida,
+			EmpleadoID:               visitas[i].EmpleadoID,
+			UsuarioID:                visitas[i].UsuarioID,
+			NombreVisita:             employee.EmpleadoNombre + " " + employee.EmpleadoApellido,
+		})
+	}
+	return visitsPrint
 }
 
 //GetDocumentBase64 get all the documents from a guest

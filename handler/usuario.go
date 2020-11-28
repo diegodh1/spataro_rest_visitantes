@@ -190,7 +190,7 @@ func GetAllUserPermissions(db *gorm.DB, w http.ResponseWriter, r *http.Request) 
 	userPermission := models.UsuarioPermiso{}
 	userPermission.UsuarioID, _ = strconv.ParseUint(mux.Vars(r)["UsuarioID"], 10, 64)
 
-	rows, err := db.Raw("SELECT * FROM (SELECT permiso_id FROM usuario_permiso WHERE usuario_permiso_estado = true AND usuario_id = 10109182) AS foo NATURAL JOIN permiso",
+	rows, err := db.Raw("SELECT * FROM (SELECT permiso_id FROM usuario_permiso WHERE usuario_permiso_estado = ? AND usuario_id = 10109182) AS foo NATURAL JOIN permiso",
 		true, userPermission.UsuarioID).Rows()
 
 	if err != nil {
